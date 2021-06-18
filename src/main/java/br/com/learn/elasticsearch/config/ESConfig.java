@@ -1,0 +1,33 @@
+package br.com.learn.elasticsearch.config;
+
+import org.elasticsearch.client.RestHighLevelClient;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.elasticsearch.client.ClientConfiguration;
+import org.springframework.data.elasticsearch.client.RestClients;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
+
+@Configuration
+@EnableElasticsearchRepositories(basePackages = "br.com.learn.elasticsearch.repository")
+@ComponentScan(basePackages = {"br.com.learn.elasticsearch.service"})
+public class ESConfig {
+	
+	private String connect;
+	
+	@Bean
+	public RestHighLevelClient client() {
+		ClientConfiguration clientConfiguration = 
+				ClientConfiguration.builder().
+				connectedTo(connect).build();
+	
+		return RestClients.create(clientConfiguration).rest();
+	}
+	
+	@Bean
+	public ElasticsearchOperations elasticsearchTemplates() {
+		return new ElasticsearchRestTemplate(client());
+	}
+}
