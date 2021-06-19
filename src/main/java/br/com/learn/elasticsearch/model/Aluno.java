@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class Aluno {
 	
 	@Id
-	private Integer raDoAlubo;
+	private Integer raDoAluno;
 	
 	@Field(type = FieldType.Text, name = "nomeDoAluno")
 	private String nomeDoAluno;
