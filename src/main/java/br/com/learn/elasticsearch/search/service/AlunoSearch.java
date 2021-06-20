@@ -1,8 +1,10 @@
 package br.com.learn.elasticsearch.search.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHits;
@@ -13,6 +15,7 @@ import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.StringQuery;
 import org.springframework.data.relational.core.query.Query;
 import org.springframework.stereotype.Service;
 
@@ -54,17 +57,39 @@ public class AlunoSearch {
 			NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
 					.withQuery(queryBuilder).build();
 			
-			org.springframework.data.elasticsearch.core.SearchHits<Aluno> alunosHits = elasticsearchOperations.search(searchQuery, Aluno.class,
+		org.springframework.data.elasticsearch.core.SearchHits<Aluno> alunosHits = elasticsearchOperations.search(searchQuery, Aluno.class,
 					IndexCoordinates.of(ALUNO_INDEX));
 	}
 	
-	public void encontrarAlunoPorNome() {
-		
+	public void encontrarAlunoPorNome(String nome) {
+		 StringQuery searchQuery = new StringQuery(
+			      "{\"match\":{\"name\":{\"query\":\""+ nome + "\"}}}\"");
+		 
+		 org.springframework.data.elasticsearch.core.SearchHits<Aluno> alunos = elasticsearchOperations.search(searchQuery, Aluno.class,
+				 IndexCoordinates.of(ALUNO_INDEX));
 	}
 	
-	
-	
-	
+	public List<Aluno>  precessSearch(String search, String nome,String desc){
+		log.info("Search with query {}",search);
+		
+		QueryBuilder queryBuilder = 
+				QueryBuilders.multiMatchQuery(search, nome,desc)
+				.fuzziness(Fuzziness.AUTO);
+		
+		NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+				.withFilter(queryBuilder).build();
+		
+		org.springframework.data.elasticsearch.core.SearchHits<Aluno> alunoHits = elasticsearchOperations
+				.search(searchQuery, Aluno.class,IndexCoordinates.of(ALUNO_INDEX));
+		
+		List<Aluno> alunosMatches = new ArrayList<Aluno>();
+		
+		alunoHits.forEach(searchHit ->{
+			alunosMatches.add(searchHit.getContent());
+		});
+		
+		return alunosMatches;
+	}
 	
 	
 	
